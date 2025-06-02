@@ -1,5 +1,6 @@
 import MainFeature from '../components/MainFeature'
 import ApperIcon from '../components/ApperIcon'
+import SurveyLanding from './SurveyLanding'
 import { motion } from 'framer-motion'
 
 const Home = () => {
