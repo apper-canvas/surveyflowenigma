@@ -439,9 +439,9 @@ toast.success('AI questions generated successfully!')
           </button>
         </div>
       </div>
-
-      <div className="space-y-4">
+<div className="space-y-4">
         <input
+          key={`question-text-${question.id}`}
           type="text"
           value={question.text}
           onChange={(e) => updateQuestion(question.id, { text: e.target.value })}
