@@ -7,9 +7,12 @@ import NotFound from './pages/NotFound'
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-surface-50 via-primary-50 to-secondary-50">
+<div className="min-h-screen bg-gradient-to-br from-surface-50 via-primary-50 to-secondary-50">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/survey-landing" element={<SurveyLanding />} />
+          <Route path="/survey-builder" element={<SurveyBuilder />} />
+          <Route path="/template-gallery" element={<TemplateGallery />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <ToastContainer
