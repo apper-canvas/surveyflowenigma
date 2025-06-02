@@ -9,7 +9,7 @@ const MainFeature = () => {
   const [questions, setQuestions] = useState([])
   const [selectedQuestionType, setSelectedQuestionType] = useState(null)
   const [activeTab, setActiveTab] = useState('builder')
-  const [draggedItem, setDraggedItem] = useState(null)
+const [draggedItem, setDraggedItem] = useState(null)
   const [responses, setResponses] = useState([])
   const dragCounter = useRef(0)
 
@@ -52,6 +52,238 @@ const MainFeature = () => {
     }
   ]
 
+  const surveyTemplates = [
+    {
+      id: 'customer-satisfaction',
+      title: 'Customer Satisfaction Survey',
+      description: 'Measure customer satisfaction and identify areas for improvement',
+      category: 'Customer Experience',
+      estimatedTime: '3-5 min',
+      questions: [
+        {
+          id: 'cs-1',
+          type: 'rating',
+          text: 'How satisfied are you with our service overall?',
+          options: [],
+          required: true
+        },
+        {
+          id: 'cs-2',
+          type: 'multiple-choice',
+          text: 'How likely are you to recommend us to others?',
+          options: ['Very Likely', 'Likely', 'Neutral', 'Unlikely', 'Very Unlikely'],
+          required: true
+        },
+        {
+          id: 'cs-3',
+          type: 'checkbox',
+          text: 'Which aspects of our service did you find most valuable?',
+          options: ['Product Quality', 'Customer Support', 'Pricing', 'Delivery Speed', 'User Experience'],
+          required: false
+        },
+        {
+          id: 'cs-4',
+          type: 'textarea',
+          text: 'What can we do to improve your experience?',
+          options: [],
+          required: false
+        }
+      ]
+    },
+    {
+      id: 'employee-feedback',
+      title: 'Employee Engagement Survey',
+      description: 'Assess employee satisfaction and workplace engagement',
+      category: 'HR & Employee',
+      estimatedTime: '5-7 min',
+      questions: [
+        {
+          id: 'ef-1',
+          type: 'rating',
+          text: 'How satisfied are you with your current role?',
+          options: [],
+          required: true
+        },
+        {
+          id: 'ef-2',
+          type: 'multiple-choice',
+          text: 'How would you rate work-life balance at our company?',
+          options: ['Excellent', 'Good', 'Fair', 'Poor', 'Very Poor'],
+          required: true
+        },
+        {
+          id: 'ef-3',
+          type: 'checkbox',
+          text: 'Which workplace benefits are most important to you?',
+          options: ['Health Insurance', 'Flexible Hours', 'Remote Work', 'Professional Development', 'Retirement Plans'],
+          required: false
+        },
+        {
+          id: 'ef-4',
+          type: 'text',
+          text: 'What motivates you most at work?',
+          options: [],
+          required: false
+        }
+      ]
+    },
+    {
+      id: 'market-research',
+      title: 'Market Research Survey',
+      description: 'Gather insights about market trends and customer preferences',
+      category: 'Marketing & Research',
+      estimatedTime: '4-6 min',
+      questions: [
+        {
+          id: 'mr-1',
+          type: 'multiple-choice',
+          text: 'What is your age group?',
+          options: ['18-24', '25-34', '35-44', '45-54', '55+'],
+          required: true
+        },
+        {
+          id: 'mr-2',
+          type: 'dropdown',
+          text: 'Which industry do you work in?',
+          options: ['Technology', 'Healthcare', 'Finance', 'Education', 'Retail', 'Other'],
+          required: true
+        },
+        {
+          id: 'mr-3',
+          type: 'checkbox',
+          text: 'Which social media platforms do you use regularly?',
+          options: ['Facebook', 'Instagram', 'Twitter/X', 'LinkedIn', 'TikTok', 'YouTube'],
+          required: false
+        },
+        {
+          id: 'mr-4',
+          type: 'rating',
+          text: 'How important is brand reputation when making purchases?',
+          options: [],
+          required: true
+        }
+      ]
+    },
+    {
+      id: 'event-feedback',
+      title: 'Event Feedback Survey',
+      description: 'Collect feedback from event attendees to improve future events',
+      category: 'Event Planning',
+      estimatedTime: '2-4 min',
+      questions: [
+        {
+          id: 'ev-1',
+          type: 'rating',
+          text: 'How would you rate the overall event experience?',
+          options: [],
+          required: true
+        },
+        {
+          id: 'ev-2',
+          type: 'multiple-choice',
+          text: 'How did you hear about this event?',
+          options: ['Social Media', 'Email', 'Website', 'Word of Mouth', 'Advertisement'],
+          required: false
+        },
+        {
+          id: 'ev-3',
+          type: 'checkbox',
+          text: 'Which sessions did you find most valuable?',
+          options: ['Keynote Speech', 'Workshop Sessions', 'Networking', 'Panel Discussions', 'Q&A Sessions'],
+          required: false
+        },
+        {
+          id: 'ev-4',
+          type: 'textarea',
+          text: 'What suggestions do you have for future events?',
+          options: [],
+          required: false
+        }
+      ]
+    },
+    {
+      id: 'product-feedback',
+      title: 'Product Feedback Survey',
+      description: 'Gather user feedback on product features and usability',
+      category: 'Product Development',
+      estimatedTime: '3-5 min',
+      questions: [
+        {
+          id: 'pf-1',
+          type: 'rating',
+          text: 'How easy was it to use our product?',
+          options: [],
+          required: true
+        },
+        {
+          id: 'pf-2',
+          type: 'multiple-choice',
+          text: 'How often do you use our product?',
+          options: ['Daily', 'Weekly', 'Monthly', 'Rarely', 'First Time'],
+          required: true
+        },
+        {
+          id: 'pf-3',
+          type: 'checkbox',
+          text: 'Which features do you use most frequently?',
+          options: ['Dashboard', 'Reports', 'Settings', 'Integrations', 'Mobile App'],
+          required: false
+        },
+        {
+          id: 'pf-4',
+          type: 'textarea',
+          text: 'What new features would you like to see?',
+          options: [],
+          required: false
+        }
+      ]
+    },
+    {
+      id: 'website-usability',
+      title: 'Website Usability Survey',
+      description: 'Evaluate website user experience and navigation',
+      category: 'Customer Experience',
+      estimatedTime: '3-4 min',
+      questions: [
+        {
+          id: 'wu-1',
+          type: 'rating',
+          text: 'How easy was it to find what you were looking for?',
+          options: [],
+          required: true
+        },
+        {
+          id: 'wu-2',
+          type: 'multiple-choice',
+          text: 'How would you rate the website design?',
+          options: ['Excellent', 'Good', 'Average', 'Poor', 'Very Poor'],
+          required: true
+        },
+        {
+          id: 'wu-3',
+          type: 'text',
+          text: 'What was the main purpose of your visit today?',
+          options: [],
+          required: false
+        },
+        {
+          id: 'wu-4',
+          type: 'checkbox',
+          text: 'Which devices did you use to access our website?',
+          options: ['Desktop Computer', 'Laptop', 'Smartphone', 'Tablet'],
+          required: false
+        }
+      ]
+    }
+  ]
+
+  const templateCategories = [
+    { name: 'Customer Experience', count: surveyTemplates.filter(t => t.category === 'Customer Experience').length },
+    { name: 'HR & Employee', count: surveyTemplates.filter(t => t.category === 'HR & Employee').length },
+    { name: 'Marketing & Research', count: surveyTemplates.filter(t => t.category === 'Marketing & Research').length },
+    { name: 'Event Planning', count: surveyTemplates.filter(t => t.category === 'Event Planning').length },
+    { name: 'Product Development', count: surveyTemplates.filter(t => t.category === 'Product Development').length }
+  ]
   const handleDragStart = (e, questionType) => {
     setDraggedItem(questionType)
     e.dataTransfer.effectAllowed = 'copy'
@@ -155,9 +387,19 @@ const MainFeature = () => {
       }
     ]
     setQuestions([...questions, ...aiQuestions])
-    toast.success('AI questions generated successfully!')
+toast.success('AI questions generated successfully!')
   }
 
+  const loadTemplate = (template) => {
+    setSurveyTitle(template.title)
+    setSurveyDescription(template.description)
+    setQuestions(template.questions.map(q => ({
+      ...q,
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+    })))
+    setActiveTab('builder')
+    toast.success(`Template "${template.title}" loaded successfully!`)
+  }
   const QuestionEditor = ({ question }) => (
     <motion.div
       layout
@@ -280,9 +522,10 @@ const MainFeature = () => {
       >
         {/* Tab Navigation */}
         <div className="border-b border-surface-200 bg-surface-50">
-          <div className="flex overflow-x-auto scrollbar-none">
+<div className="flex overflow-x-auto scrollbar-none">
             {[
               { id: 'builder', name: 'Builder', icon: 'Wrench' },
+              { id: 'templates', name: 'Templates', icon: 'Layout' },
               { id: 'preview', name: 'Preview', icon: 'Eye' },
               { id: 'analytics', name: 'Analytics', icon: 'BarChart3' }
             ].map((tab) => (
@@ -452,8 +695,83 @@ const MainFeature = () => {
                   </div>
                 </div>
               </motion.div>
-            )}
+)}
 
+            {activeTab === 'templates' && (
+              <motion.div
+                key="templates"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold text-surface-800">Survey Templates</h2>
+                  <p className="text-surface-600">Choose from professionally designed templates to get started quickly</p>
+                </div>
+
+                <div className="space-y-6">
+                  {templateCategories.map((category) => (
+                    <motion.div
+                      key={category.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-4"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <h3 className="text-lg font-semibold text-surface-800">{category.name}</h3>
+                        <span className="px-2 py-1 bg-primary-100 text-primary-600 text-xs font-medium rounded-full">
+                          {category.count}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {surveyTemplates
+                          .filter(template => template.category === category.name)
+                          .map((template) => (
+                            <motion.div
+                              key={template.id}
+                              whileHover={{ y: -2 }}
+                              className="survey-card p-4 group cursor-pointer"
+                              onClick={() => loadTemplate(template)}
+                            >
+                              <div className="space-y-3">
+                                <div className="flex items-start justify-between">
+                                  <h4 className="font-semibold text-surface-800 group-hover:text-primary transition-colors duration-200">
+                                    {template.title}
+                                  </h4>
+                                  <div className="flex items-center space-x-1 text-xs text-surface-500">
+                                    <ApperIcon name="Clock" className="h-3 w-3" />
+                                    <span>{template.estimatedTime}</span>
+                                  </div>
+                                </div>
+                                
+                                <p className="text-sm text-surface-600 line-clamp-2">
+                                  {template.description}
+                                </p>
+                                
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2 text-xs text-surface-500">
+                                    <ApperIcon name="FileText" className="h-3 w-3" />
+                                    <span>{template.questions.length} questions</span>
+                                  </div>
+                                  
+                                  <button className="flex items-center space-x-1 px-3 py-1.5 bg-primary text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs font-medium">
+                                    <ApperIcon name="Plus" className="h-3 w-3" />
+                                    <span>Use Template</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))
+                        }
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
             {activeTab === 'preview' && (
               <motion.div
                 key="preview"
