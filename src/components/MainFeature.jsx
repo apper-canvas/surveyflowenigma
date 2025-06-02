@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import ApperIcon from './ApperIcon'
@@ -328,11 +328,11 @@ const [draggedItem, setDraggedItem] = useState(null)
     setQuestions([...questions, newQuestion])
   }
 
-  const updateQuestion = (id, updates) => {
-    setQuestions(questions.map(q => 
+const updateQuestion = useCallback((id, updates) => {
+    setQuestions(prev => prev.map(q => 
       q.id === id ? { ...q, ...updates } : q
     ))
-  }
+  }, [])
 
   const deleteQuestion = (id) => {
     setQuestions(questions.filter(q => q.id !== id))
@@ -400,7 +400,7 @@ toast.success('AI questions generated successfully!')
     setActiveTab('builder')
     toast.success(`Template "${template.title}" loaded successfully!`)
   }
-  const QuestionEditor = ({ question }) => (
+const QuestionEditor = React.memo(({ question }) => (
     <motion.div
       layout
       initial={{ opacity: 0, y: 20 }}
@@ -441,7 +441,6 @@ toast.success('AI questions generated successfully!')
       </div>
 <div className="space-y-4">
         <input
-          key={`question-text-${question.id}`}
           type="text"
           value={question.text}
           onChange={(e) => updateQuestion(question.id, { text: e.target.value })}
@@ -493,8 +492,7 @@ toast.success('AI questions generated successfully!')
         )}
       </div>
     </motion.div>
-  )
-
+  ))
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header Section */}
