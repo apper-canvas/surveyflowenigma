@@ -684,7 +684,7 @@ const QuestionEditor = React.memo(({ question }) => {
 <div className="p-4 sm:p-6 space-y-4">
                           <AnimatePresence>
                             {questions.map((question) => (
-                              <QuestionEditor key={`question-${question.id}`} question={question} />
+                              <QuestionEditor key={question.id} question={question} />
                             ))}
                           </AnimatePresence>
                         </div>
