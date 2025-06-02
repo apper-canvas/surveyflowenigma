@@ -3,7 +3,9 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
-
+import SurveyLanding from './pages/SurveyLanding'
+import SurveyBuilder from './pages/SurveyBuilder'
+import TemplateGallery from './pages/TemplateGallery'
 function App() {
   return (
     <Router>
