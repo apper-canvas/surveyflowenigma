@@ -400,99 +400,123 @@ toast.success('AI questions generated successfully!')
     setActiveTab('builder')
     toast.success(`Template "${template.title}" loaded successfully!`)
   }
-const QuestionEditor = React.memo(({ question }) => (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="survey-card p-4 sm:p-6 group"
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-primary-100 rounded-lg">
-            <ApperIcon 
-              name={questionTypes.find(t => t.id === question.type)?.icon || 'HelpCircle'} 
-              className="h-4 w-4 text-primary-600" 
-            />
+const QuestionEditor = React.memo(({ question }) => {
+    const inputRef = useRef(null)
+    
+    const handleTextChange = useCallback((e) => {
+      const cursorPosition = e.target.selectionStart
+      updateQuestion(question.id, { text: e.target.value })
+      
+      // Preserve cursor position after state update
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.setSelectionRange(cursorPosition, cursorPosition)
+        }
+      })
+    }, [question.id])
+    
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="survey-card p-4 sm:p-6 group"
+      >
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-primary-100 rounded-lg">
+              <ApperIcon 
+                name={questionTypes.find(t => t.id === question.type)?.icon || 'HelpCircle'} 
+                className="h-4 w-4 text-primary-600" 
+              />
+            </div>
+            <span className="text-sm font-medium text-surface-600 capitalize">
+              {question.type.replace('-', ' ')}
+            </span>
           </div>
-          <span className="text-sm font-medium text-surface-600 capitalize">
-            {question.type.replace('-', ' ')}
-          </span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => updateQuestion(question.id, { required: !question.required })}
-            className={`px-2 py-1 rounded-md text-xs font-medium transition-colors duration-200 ${
-              question.required 
-                ? 'bg-accent text-white' 
-                : 'bg-surface-100 text-surface-600 hover:bg-surface-200'
-            }`}
-          >
-            Required
-          </button>
-          <button
-            onClick={() => deleteQuestion(question.id)}
-            className="p-1.5 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
-          >
-            <ApperIcon name="Trash2" className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-<div className="space-y-4">
-        <input
-          type="text"
-          value={question.text}
-          onChange={(e) => updateQuestion(question.id, { text: e.target.value })}
-          placeholder="Enter your question..."
-          className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-        />
-
-        {(question.type === 'multiple-choice' || question.type === 'checkbox' || question.type === 'dropdown') && (
-          <div className="space-y-2">
-            {question.options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={option}
-                  onChange={(e) => {
-                    const newOptions = [...question.options]
-                    newOptions[index] = e.target.value
-                    updateQuestion(question.id, { options: newOptions })
-                  }}
-                  className="flex-1 px-3 py-2 bg-white border border-surface-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm"
-                />
-                {question.options.length > 2 && (
-                  <button
-                    onClick={() => removeOption(question.id, index)}
-                    className="p-1.5 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
-                  >
-                    <ApperIcon name="X" className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            ))}
+          <div className="flex items-center space-x-2">
             <button
-              onClick={() => addOption(question.id)}
-              className="flex items-center space-x-2 px-3 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200 text-sm"
+              onClick={() => updateQuestion(question.id, { required: !question.required })}
+              className={`px-2 py-1 rounded-md text-xs font-medium transition-colors duration-200 ${
+                question.required 
+                  ? 'bg-accent text-white' 
+                  : 'bg-surface-100 text-surface-600 hover:bg-surface-200'
+              }`}
             >
-              <ApperIcon name="Plus" className="h-3 w-3" />
-              <span>Add Option</span>
+              Required
+            </button>
+            <button
+              onClick={() => deleteQuestion(question.id)}
+              className="p-1.5 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+            >
+              <ApperIcon name="Trash2" className="h-4 w-4" />
             </button>
           </div>
-        )}
+        </div>
+        
+        <div className="space-y-4">
+          <input
+            ref={inputRef}
+            type="text"
+            value={question.text}
+            onChange={handleTextChange}
+            placeholder="Enter your question..."
+            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+          />
 
-        {question.type === 'rating' && (
-          <div className="flex items-center space-x-2 p-3 bg-surface-50 rounded-lg">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <ApperIcon key={star} name="Star" className="h-5 w-5 text-accent" />
-            ))}
-            <span className="text-sm text-surface-600 ml-2">1-5 Rating Scale</span>
-          </div>
-        )}
-      </div>
-    </motion.div>
-  ))
+          {(question.type === 'multiple-choice' || question.type === 'checkbox' || question.type === 'dropdown') && (
+            <div className="space-y-2">
+              {question.options.map((option, index) => (
+                <div key={`${question.id}-option-${index}`} className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={option}
+                    onChange={(e) => {
+                      const newOptions = [...question.options]
+                      newOptions[index] = e.target.value
+                      updateQuestion(question.id, { options: newOptions })
+                    }}
+                    className="flex-1 px-3 py-2 bg-white border border-surface-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm"
+                  />
+                  {question.options.length > 2 && (
+                    <button
+                      onClick={() => removeOption(question.id, index)}
+                      className="p-1.5 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+                    >
+                      <ApperIcon name="X" className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                onClick={() => addOption(question.id)}
+                className="flex items-center space-x-2 px-3 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200 text-sm"
+              >
+                <ApperIcon name="Plus" className="h-3 w-3" />
+                <span>Add Option</span>
+              </button>
+            </div>
+          )}
+
+          {question.type === 'rating' && (
+            <div className="flex items-center space-x-2 p-3 bg-surface-50 rounded-lg">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <ApperIcon key={star} name="Star" className="h-5 w-5 text-accent" />
+              ))}
+              <span className="text-sm text-surface-600 ml-2">1-5 Rating Scale</span>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    )
+  }, (prevProps, nextProps) => {
+    return prevProps.question.id === nextProps.question.id &&
+           prevProps.question.text === nextProps.question.text &&
+           prevProps.question.type === nextProps.question.type &&
+           prevProps.question.required === nextProps.question.required &&
+           JSON.stringify(prevProps.question.options) === JSON.stringify(nextProps.question.options)
+  })
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header Section */}
@@ -657,10 +681,10 @@ const QuestionEditor = React.memo(({ question }) => (
                           </div>
                         </div>
                       ) : (
-                        <div className="p-4 sm:p-6 space-y-4">
+<div className="p-4 sm:p-6 space-y-4">
                           <AnimatePresence>
                             {questions.map((question) => (
-                              <QuestionEditor key={question.id} question={question} />
+                              <QuestionEditor key={`question-${question.id}`} question={question} />
                             ))}
                           </AnimatePresence>
                         </div>
