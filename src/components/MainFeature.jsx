@@ -400,54 +400,19 @@ toast.success('AI questions generated successfully!')
     setActiveTab('builder')
     toast.success(`Template "${template.title}" loaded successfully!`)
   }
-const QuestionInput = React.memo(({ questionId, initialValue, onUpdate }) => {
-    const [value, setValue] = useState(initialValue || '')
+const QuestionEditor = React.memo(({ question }) => {
     const inputRef = useRef(null)
-    const timeoutRef = useRef(null)
     
-    // Update internal value when prop changes from external source
-    React.useEffect(() => {
-      setValue(initialValue || '')
-    }, [initialValue])
-    
-    // Debounced update to parent
-    React.useEffect(() => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
+    const handleTextChange = useCallback((e) => {
+      const cursorPosition = e.target.selectionStart
+      updateQuestion(question.id, { text: e.target.value })
       
-      timeoutRef.current = setTimeout(() => {
-        if (value !== initialValue) {
-          onUpdate(value)
+      // Preserve cursor position after state update
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.setSelectionRange(cursorPosition, cursorPosition)
         }
-      }, 300)
-      
-      return () => {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current)
-        }
-      }
-    }, [value, initialValue, onUpdate])
-    
-    const handleChange = (e) => {
-      setValue(e.target.value)
-    }
-    
-    return (
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={handleChange}
-        placeholder="Enter your question..."
-        className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-      />
-    )
-  })
-
-  const QuestionEditor = React.memo(({ question }) => {
-    const handleTextUpdate = useCallback((newText) => {
-      updateQuestion(question.id, { text: newText })
+      })
     }, [question.id])
     
     return (
@@ -491,10 +456,13 @@ const QuestionInput = React.memo(({ questionId, initialValue, onUpdate }) => {
         </div>
         
         <div className="space-y-4">
-          <QuestionInput
-            questionId={question.id}
-            initialValue={question.text}
-            onUpdate={handleTextUpdate}
+          <input
+            ref={inputRef}
+            type="text"
+            value={question.text}
+            onChange={handleTextChange}
+            placeholder="Enter your question..."
+            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
           />
 
           {(question.type === 'multiple-choice' || question.type === 'checkbox' || question.type === 'dropdown') && (
