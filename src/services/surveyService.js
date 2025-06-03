@@ -1,11 +1,6 @@
-const { ApperClient } = window.ApperSDK;
-
 class SurveyService {
   constructor() {
-    this.apperClient = new ApperClient({
-      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-    });
+    this.apperClient = null;
     this.tableName = 'survey';
     this.allFields = [
       'Name', 'Tags', 'Owner', 'CreatedOn', 'CreatedBy', 'ModifiedOn', 'ModifiedBy',
@@ -16,6 +11,21 @@ class SurveyService {
     ];
   }
 
+  initializeClient() {
+    if (!this.apperClient && window.ApperSDK && window.ApperSDK.ApperClient) {
+      try {
+        this.apperClient = new window.ApperSDK.ApperClient({
+          apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+          apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+        });
+      } catch (error) {
+        console.error("Failed to initialize ApperClient:", error);
+        throw new Error("ApperSDK not available");
+      }
+    }
+    return this.apperClient;
+  }
+
   async fetchAllSurveys(params = {}) {
     try {
       const defaultParams = {
@@ -24,7 +34,12 @@ class SurveyService {
         pagingInfo: { limit: 20, offset: 0 }
       };
       
-      const response = await this.apperClient.fetchRecords(this.tableName, { ...defaultParams, ...params });
+const client = this.initializeClient();
+      if (!client) {
+        throw new Error("ApperClient not available");
+      }
+
+      const response = await client.fetchRecords(this.tableName, { ...defaultParams, ...params });
       
       if (!response || !response.data || response.data.length === 0) {
         return [];
@@ -40,7 +55,12 @@ class SurveyService {
   async getSurveyById(surveyId) {
     try {
       const params = { fields: this.allFields };
-      const response = await this.apperClient.getRecordById(this.tableName, surveyId, params);
+const client = this.initializeClient();
+      if (!client) {
+        throw new Error("ApperClient not available");
+      }
+
+      const response = await client.getRecordById(this.tableName, surveyId, params);
       
       if (!response || !response.data) {
         return null;
@@ -67,7 +87,12 @@ class SurveyService {
         records: [filteredData]
       };
 
-      const response = await this.apperClient.createRecord(this.tableName, params);
+const client = this.initializeClient();
+      if (!client) {
+        throw new Error("ApperClient not available");
+      }
+
+      const response = await client.createRecord(this.tableName, params);
       
       if (response && response.success && response.results) {
         const successfulRecords = response.results.filter(result => result.success);
@@ -97,7 +122,12 @@ class SurveyService {
         records: [filteredData]
       };
 
-      const response = await this.apperClient.updateRecord(this.tableName, params);
+const client = this.initializeClient();
+      if (!client) {
+        throw new Error("ApperClient not available");
+      }
+
+      const response = await client.updateRecord(this.tableName, params);
       
       if (response && response.success && response.results) {
         const successfulUpdates = response.results.filter(result => result.success);
@@ -118,7 +148,12 @@ class SurveyService {
       const recordIds = Array.isArray(surveyIds) ? surveyIds : [surveyIds];
       const params = { RecordIds: recordIds };
 
-      const response = await this.apperClient.deleteRecord(this.tableName, params);
+const client = this.initializeClient();
+      if (!client) {
+        throw new Error("ApperClient not available");
+      }
+
+      const response = await client.deleteRecord(this.tableName, params);
       
       if (response && response.success) {
         return true;
