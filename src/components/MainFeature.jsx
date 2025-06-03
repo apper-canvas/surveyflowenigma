@@ -538,7 +538,72 @@ toast.success('AI questions generated successfully!')
     setCurrentSurveyId(null)
     setActiveTab('builder')
     toast.success(`Template "${template.title}" loaded successfully!`)
-  }
+}
+
+  // Isolated option input component to prevent cursor jumping
+  const OptionInput = React.memo(({ questionId, optionIndex, value, onRemove, canRemove }) => {
+    const [localValue, setLocalValue] = useState(value)
+    const inputRef = useRef(null)
+    const debounceTimer = useRef(null)
+
+    useEffect(() => {
+      setLocalValue(value)
+    }, [value])
+
+    const handleChange = useCallback((e) => {
+      const newValue = e.target.value
+      setLocalValue(newValue)
+      
+      // Clear existing timer
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current)
+      }
+      
+      // Debounce the update to prevent excessive re-renders
+      debounceTimer.current = setTimeout(() => {
+        const question = questions.find(q => q.id === questionId)
+        if (question) {
+          const newOptions = [...question.options]
+          newOptions[optionIndex] = newValue
+          updateQuestion(questionId, { options: newOptions })
+        }
+      }, 300)
+    }, [questionId, optionIndex])
+
+    useEffect(() => {
+      return () => {
+        if (debounceTimer.current) {
+          clearTimeout(debounceTimer.current)
+        }
+      }
+    }, [])
+
+    return (
+      <div className="flex items-center space-x-2">
+        <input
+          ref={inputRef}
+          type="text"
+          value={localValue}
+          onChange={handleChange}
+          className="flex-1 px-3 py-2 bg-white border border-surface-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm"
+        />
+        {canRemove && (
+          <button
+            onClick={() => onRemove(questionId, optionIndex)}
+            className="p-1.5 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+          >
+            <ApperIcon name="X" className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    )
+  }, (prevProps, nextProps) => {
+    return prevProps.questionId === nextProps.questionId &&
+           prevProps.optionIndex === nextProps.optionIndex &&
+           prevProps.value === nextProps.value &&
+           prevProps.canRemove === nextProps.canRemove
+  })
+
 const QuestionEditor = React.memo(({ question }) => {
     const inputRef = useRef(null)
     
@@ -613,26 +678,14 @@ const QuestionEditor = React.memo(({ question }) => {
           {(question.type === 'multiple-choice' || question.type === 'checkbox' || question.type === 'dropdown') && (
             <div className="space-y-2">
               {question.options.map((option, index) => (
-                <div key={`${question.id}-option-${index}`} className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={option}
-                    onChange={(e) => {
-                      const newOptions = [...question.options]
-                      newOptions[index] = e.target.value
-                      updateQuestion(question.id, { options: newOptions })
-                    }}
-                    className="flex-1 px-3 py-2 bg-white border border-surface-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm"
-                  />
-                  {question.options.length > 2 && (
-                    <button
-                      onClick={() => removeOption(question.id, index)}
-                      className="p-1.5 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
-                    >
-                      <ApperIcon name="X" className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
+                <OptionInput
+                  key={`${question.id}-option-${index}`}
+                  questionId={question.id}
+                  optionIndex={index}
+                  value={option}
+                  onRemove={removeOption}
+                  canRemove={question.options.length > 2}
+                />
               ))}
               <button
                 onClick={() => addOption(question.id)}
