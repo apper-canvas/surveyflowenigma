@@ -11,8 +11,13 @@ const MainFeature = () => {
   const [activeTab, setActiveTab] = useState('builder')
 const [draggedItem, setDraggedItem] = useState(null)
   const [responses, setResponses] = useState([])
+  const [savedSurveys, setSavedSurveys] = useState([])
+  const [currentSurveyId, setCurrentSurveyId] = useState(null)
+  const [showSavedSurveys, setShowSavedSurveys] = useState(false)
+  const [lastSaved, setLastSaved] = useState(null)
+  const [isAutoSaving, setIsAutoSaving] = useState(false)
   const dragCounter = useRef(0)
-
+  const autoSaveTimer = useRef(null)
   const questionTypes = [
     {
       id: 'multiple-choice',
@@ -390,6 +395,139 @@ const updateQuestion = useCallback((id, updates) => {
 toast.success('AI questions generated successfully!')
   }
 
+  // Load saved surveys from localStorage on component mount
+  useEffect(() => {
+    const saved = localStorage.getItem('savedSurveys')
+    if (saved) {
+      setSavedSurveys(JSON.parse(saved))
+    }
+  }, [])
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (surveyTitle || surveyDescription || questions.length > 0) {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current)
+      }
+      
+      autoSaveTimer.current = setTimeout(() => {
+        if (currentSurveyId) {
+          autoSaveSurvey()
+        }
+      }, 30000) // Auto-save every 30 seconds
+    }
+
+    return () => {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current)
+      }
+    }
+  }, [surveyTitle, surveyDescription, questions, currentSurveyId])
+
+  // Keyboard shortcut for saving
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        saveSurvey()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  const saveSurvey = () => {
+    if (!surveyTitle.trim()) {
+      toast.error('Please enter a survey title before saving')
+      return
+    }
+
+    const surveyData = {
+      id: currentSurveyId || Date.now().toString(),
+      title: surveyTitle,
+      description: surveyDescription,
+      questions: questions,
+      createdAt: currentSurveyId ? savedSurveys.find(s => s.id === currentSurveyId)?.createdAt || new Date().toISOString() : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      questionCount: questions.length
+    }
+
+    const existingSurveys = JSON.parse(localStorage.getItem('savedSurveys') || '[]')
+    const existingIndex = existingSurveys.findIndex(s => s.id === surveyData.id)
+    
+    if (existingIndex >= 0) {
+      existingSurveys[existingIndex] = surveyData
+      toast.success('Survey updated successfully!')
+    } else {
+      existingSurveys.unshift(surveyData)
+      toast.success('Survey saved successfully!')
+    }
+
+    localStorage.setItem('savedSurveys', JSON.stringify(existingSurveys))
+    setSavedSurveys(existingSurveys)
+    setCurrentSurveyId(surveyData.id)
+    setLastSaved(new Date())
+  }
+
+  const autoSaveSurvey = () => {
+    if (!surveyTitle.trim()) return
+
+    setIsAutoSaving(true)
+    const surveyData = {
+      id: currentSurveyId,
+      title: surveyTitle,
+      description: surveyDescription,
+      questions: questions,
+      createdAt: savedSurveys.find(s => s.id === currentSurveyId)?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      questionCount: questions.length
+    }
+
+    const existingSurveys = JSON.parse(localStorage.getItem('savedSurveys') || '[]')
+    const existingIndex = existingSurveys.findIndex(s => s.id === currentSurveyId)
+    
+    if (existingIndex >= 0) {
+      existingSurveys[existingIndex] = surveyData
+      localStorage.setItem('savedSurveys', JSON.stringify(existingSurveys))
+      setSavedSurveys(existingSurveys)
+      setLastSaved(new Date())
+    }
+
+    setTimeout(() => setIsAutoSaving(false), 1000)
+  }
+
+  const loadSavedSurvey = (survey) => {
+    setSurveyTitle(survey.title)
+    setSurveyDescription(survey.description)
+    setQuestions(survey.questions)
+    setCurrentSurveyId(survey.id)
+    setShowSavedSurveys(false)
+    toast.success(`Survey "${survey.title}" loaded successfully!`)
+  }
+
+  const deleteSavedSurvey = (surveyId, event) => {
+    event.stopPropagation()
+    const updatedSurveys = savedSurveys.filter(s => s.id !== surveyId)
+    setSavedSurveys(updatedSurveys)
+    localStorage.setItem('savedSurveys', JSON.stringify(updatedSurveys))
+    
+    if (currentSurveyId === surveyId) {
+      setCurrentSurveyId(null)
+    }
+    
+    toast.success('Survey deleted successfully!')
+  }
+
+  const createNewSurvey = () => {
+    setSurveyTitle('')
+    setSurveyDescription('')
+    setQuestions([])
+    setCurrentSurveyId(null)
+    setShowSavedSurveys(false)
+    toast.success('New survey created!')
+  }
+
   const loadTemplate = (template) => {
     setSurveyTitle(template.title)
     setSurveyDescription(template.description)
@@ -397,6 +535,7 @@ toast.success('AI questions generated successfully!')
       ...q,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
     })))
+    setCurrentSurveyId(null)
     setActiveTab('builder')
     toast.success(`Template "${template.title}" loaded successfully!`)
   }
@@ -612,11 +751,87 @@ const QuestionEditor = React.memo(({ question }) => {
                     />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+<div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
                   {/* Question Types Sidebar */}
                   <div className="xl:col-span-1">
                     <div className="sticky top-6 space-y-4">
+                      {/* Save/Load Controls */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-semibold text-surface-800">Survey Actions</h3>
+                          {lastSaved && (
+                            <span className="text-xs text-surface-500">
+                              {isAutoSaving ? 'Saving...' : `Saved ${lastSaved.toLocaleTimeString()}`}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-1 gap-2">
+                          <button
+                            onClick={saveSurvey}
+                            className="flex items-center justify-center space-x-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all duration-200 text-sm font-medium"
+                          >
+                            <ApperIcon name="Save" className="h-3 w-3" />
+                            <span>Save Survey</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => setShowSavedSurveys(!showSavedSurveys)}
+                            className="flex items-center justify-center space-x-2 px-3 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-dark transition-all duration-200 text-sm font-medium"
+                          >
+                            <ApperIcon name="FolderOpen" className="h-3 w-3" />
+                            <span>Load Survey</span>
+                          </button>
+                          
+                          <button
+                            onClick={createNewSurvey}
+                            className="flex items-center justify-center space-x-2 px-3 py-2 bg-surface-600 text-white rounded-lg hover:bg-surface-700 transition-all duration-200 text-sm font-medium"
+                          >
+                            <ApperIcon name="FileText" className="h-3 w-3" />
+                            <span>New Survey</span>
+                          </button>
+                        </div>
+
+                        {showSavedSurveys && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="border border-surface-200 rounded-lg p-3 bg-surface-50"
+                          >
+                            <h4 className="text-sm font-medium text-surface-700 mb-2">Saved Surveys</h4>
+                            {savedSurveys.length === 0 ? (
+                              <p className="text-xs text-surface-500">No saved surveys yet</p>
+                            ) : (
+                              <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {savedSurveys.map((survey) => (
+                                  <div
+                                    key={survey.id}
+                                    onClick={() => loadSavedSurvey(survey)}
+                                    className="flex items-center justify-between p-2 bg-white rounded border border-surface-200 hover:bg-surface-50 cursor-pointer group"
+                                  >
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-medium text-surface-800 truncate">
+                                        {survey.title}
+                                      </p>
+                                      <p className="text-xs text-surface-500">
+                                        {survey.questionCount} questions
+                                      </p>
+                                    </div>
+                                    <button
+                                      onClick={(e) => deleteSavedSurvey(survey.id, e)}
+                                      className="p-1 text-surface-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                                    >
+                                      <ApperIcon name="Trash2" className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </div>
+
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-surface-800">
                           Question Types
@@ -697,13 +912,20 @@ const QuestionEditor = React.memo(({ question }) => {
                       )}
                     </div>
 
-                    {/* Action Buttons */}
+{/* Action Buttons */}
                     {questions.length > 0 && (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="flex flex-col sm:flex-row gap-3 mt-6"
                       >
+                        <button
+                          onClick={saveSurvey}
+                          className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 font-medium"
+                        >
+                          <ApperIcon name="Save" className="h-4 w-4" />
+                          <span>Save Survey</span>
+                        </button>
                         <button
                           onClick={previewSurvey}
                           className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary-dark transition-all duration-200 font-medium"
