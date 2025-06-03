@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import ApperIcon from './ApperIcon'
@@ -403,17 +403,22 @@ toast.success('AI questions generated successfully!')
 const QuestionEditor = React.memo(({ question }) => {
     const inputRef = useRef(null)
     
-    const handleTextChange = useCallback((e) => {
-      const cursorPosition = e.target.selectionStart
-      updateQuestion(question.id, { text: e.target.value })
-      
-      // Preserve cursor position after state update
-      requestAnimationFrame(() => {
-        if (inputRef.current) {
-          inputRef.current.setSelectionRange(cursorPosition, cursorPosition)
-        }
-      })
-    }, [question.id])
+  const [localText, setLocalText] = useState(question.text)
+
+  useEffect(() => {
+    setLocalText(question.text)
+  }, [question.text])
+
+  const handleTextChange = useCallback((e) => {
+    const newText = e.target.value
+    setLocalText(newText)
+  }, [])
+
+  const handleTextBlur = useCallback(() => {
+    if (localText !== question.text) {
+      updateQuestion(question.id, { text: localText })
+    }
+  }, [localText, question.id, question.text])
     
     return (
       <motion.div
@@ -459,8 +464,9 @@ const QuestionEditor = React.memo(({ question }) => {
           <input
             ref={inputRef}
             type="text"
-            value={question.text}
+            value={localText}
             onChange={handleTextChange}
+            onBlur={handleTextBlur}
             placeholder="Enter your question..."
             className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
           />
