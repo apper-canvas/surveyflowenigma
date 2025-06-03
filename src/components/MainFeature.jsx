@@ -665,15 +665,10 @@ const QuestionEditor = React.memo(({ question }) => {
           </div>
         </div>
         
-        <div className="space-y-4">
-          <input
-            ref={inputRef}
-            type="text"
-            value={localText}
-            onChange={handleTextChange}
-            onBlur={handleTextBlur}
-            placeholder="Enter your question..."
-            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+<div className="space-y-4">
+          <QuestionInput
+            questionId={question.id}
+            value={question.text}
           />
 
           {(question.type === 'multiple-choice' || question.type === 'checkbox' || question.type === 'dropdown') && (
