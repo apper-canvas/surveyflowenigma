@@ -312,14 +312,20 @@ const TemplateGallery = () => {
               </div>
 
               <div className="mb-6">
-                <h4 className="font-semibold text-surface-900 mb-4">Sample Questions:</h4>
+<h4 className="font-semibold text-surface-900 mb-4">Template Information:</h4>
                 <div className="space-y-3">
-                  {previewTemplate.preview.map((question, index) => (
-                    <div key={index} className="bg-surface-50 p-3 rounded-lg">
-                      <span className="text-sm font-medium text-surface-700">Q{index + 1}:</span>
-                      <span className="text-sm text-surface-600 ml-2">{question}</span>
-                    </div>
-                  ))}
+                  <div className="bg-surface-50 p-3 rounded-lg">
+                    <span className="text-sm font-medium text-surface-700">Category:</span>
+                    <span className="text-sm text-surface-600 ml-2">{previewTemplate.category}</span>
+                  </div>
+                  <div className="bg-surface-50 p-3 rounded-lg">
+                    <span className="text-sm font-medium text-surface-700">Estimated Time:</span>
+                    <span className="text-sm text-surface-600 ml-2">{previewTemplate.estimated_time || 'Not specified'}</span>
+                  </div>
+                  <div className="bg-surface-50 p-3 rounded-lg">
+                    <span className="text-sm font-medium text-surface-700">Rating:</span>
+                    <span className="text-sm text-surface-600 ml-2">{previewTemplate.rating || 'No rating'}</span>
+                  </div>
                 </div>
               </div>
 

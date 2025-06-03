@@ -7,15 +7,16 @@ const MainFeature = () => {
   const [surveyTitle, setSurveyTitle] = useState('')
   const [surveyDescription, setSurveyDescription] = useState('')
   const [questions, setQuestions] = useState([])
-  const [selectedQuestionType, setSelectedQuestionType] = useState(null)
+const [selectedQuestionType, setSelectedQuestionType] = useState(null)
   const [activeTab, setActiveTab] = useState('builder')
-const [draggedItem, setDraggedItem] = useState(null)
+  const [draggedItem, setDraggedItem] = useState(null)
   const [responses, setResponses] = useState([])
   const [savedSurveys, setSavedSurveys] = useState([])
   const [currentSurveyId, setCurrentSurveyId] = useState(null)
   const [showSavedSurveys, setShowSavedSurveys] = useState(false)
   const [lastSaved, setLastSaved] = useState(null)
   const [isAutoSaving, setIsAutoSaving] = useState(false)
+  const [loadingTemplates, setLoadingTemplates] = useState(false)
   const dragCounter = useRef(0)
   const autoSaveTimer = useRef(null)
   const questionTypes = [
@@ -1029,46 +1030,51 @@ const QuestionEditor = React.memo(({ question }) => {
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {surveyTemplates
-                          .filter(template => template.category === category.name)
-                          .map((template) => (
-                            <motion.div
-                              key={template.id}
-                              whileHover={{ y: -2 }}
-                              className="survey-card p-4 group cursor-pointer"
-                              onClick={() => loadTemplate(template)}
-                            >
-                              <div className="space-y-3">
-                                <div className="flex items-start justify-between">
-                                  <h4 className="font-semibold text-surface-800 group-hover:text-primary transition-colors duration-200">
-                                    {template.title}
-                                  </h4>
-                                  <div className="flex items-center space-x-1 text-xs text-surface-500">
-                                    <ApperIcon name="Clock" className="h-3 w-3" />
-                                    <span>{template.estimatedTime}</span>
-                                  </div>
-                                </div>
-                                
-                                <p className="text-sm text-surface-600 line-clamp-2">
-                                  {template.description}
-                                </p>
-                                
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2 text-xs text-surface-500">
-                                    <ApperIcon name="FileText" className="h-3 w-3" />
-                                    <span>{template.questions.length} questions</span>
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {loadingTemplates ? (
+                          <div className="col-span-full text-center py-8">
+                            <p className="text-surface-500">Loading templates...</p>
+                          </div>
+                        ) : (
+                          surveyTemplates
+                            .filter(template => template.category === category.name)
+.map((template) => (
+                              <motion.div
+                                key={template.id}
+                                whileHover={{ y: -2 }}
+                                className="survey-card p-4 group cursor-pointer"
+                                onClick={() => loadTemplate(template)}
+                              >
+                                <div className="space-y-3">
+<div className="flex items-start justify-between">
+                                    <h4 className="font-semibold text-surface-800 group-hover:text-primary transition-colors duration-200">
+                                      {template.title}
+                                    </h4>
+                                    <div className="flex items-center space-x-1 text-xs text-surface-500">
+                                      <ApperIcon name="Clock" className="h-3 w-3" />
+                                      <span>{template.estimatedTime}</span>
+                                    </div>
                                   </div>
                                   
-                                  <button className="flex items-center space-x-1 px-3 py-1.5 bg-primary text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs font-medium">
-                                    <ApperIcon name="Plus" className="h-3 w-3" />
-                                    <span>Use Template</span>
-                                  </button>
+                                  <p className="text-sm text-surface-600 line-clamp-2">
+                                    {template.description}
+                                  </p>
+                                  
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2 text-xs text-surface-500">
+                                      <ApperIcon name="FileText" className="h-3 w-3" />
+                                      <span>Template questions</span>
+                                    </div>
+                                    
+                                    <button className="flex items-center space-x-1 px-3 py-1.5 bg-primary text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs font-medium">
+                                      <ApperIcon name="Plus" className="h-3 w-3" />
+                                      <span>Use Template</span>
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            </motion.div>
-                          ))
-                        }
+                              </motion.div>
+                            ))
+                        )}
                       </div>
                     </motion.div>
                   ))}
